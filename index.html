@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Valentine💗</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{
+  height:100vh;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  font-family:"Segoe UI", sans-serif;
+  overflow:hidden;
+  color:#dda0ff;
+  position:relative;
+  background: linear-gradient(160deg, #1a002a, #2e0045);
+  background-size: 400% 400%;
+  animation: bgShift 30s ease infinite;
+}
+
+@keyframes bgShift{
+  0%{background-position:0% 50%;}
+  50%{background-position:100% 50%;}
+  100%{background-position:0% 50%;}
+}
+
+canvas{
+  position:absolute;
+  top:0; left:0;
+  width:100%; height:100%;
+  z-index:0;
+}
+
+.card{
+  background: rgba(50,0,50,0.9);
+  width: 90%;
+  max-width:460px;
+  padding:42px 36px;
+  border-radius:22px;
+  text-align:center;
+  box-shadow:0 25px 50px rgba(0,0,0,0.4);
+  z-index:2;
+  position:relative;
+}
+
+h2{margin-bottom:18px;color:#dda0ff;}
+input{
+  width:85%;
+  padding:12px;
+  border-radius:14px;
+  border:none;
+  margin-bottom:16px;
+  text-align:center;
+  font-size:16px;
+  background:#3a0c55;
+  color:#e0b3ff;
+}
+button{
+  padding:12px 24px;
+  border-radius:22px;
+  border:none;
+  background:#bb33ff;
+  color:#fff;
+  cursor:pointer;
+  font-size:16px;
+  transition: transform 0.2s;
+}
+button:hover{transform:scale(1.08);}
+.error{font-size:14px;min-height:18px;margin-top:8px;color:#ff99ff;}
+
+.heart{
+  font-size:100px;
+  cursor:pointer;
+  user-select:none;
+  margin-bottom:12px;
+  position:relative;
+  z-index:3;
+  /* gentle float always */
+  animation: floatHeart 3s ease-in-out infinite;
+  transition: transform 0.2s, text-shadow 0.2s;
+}
+
+.heart.glow {
+  text-shadow: 0 0 20px #ef72c5, 0 0 40px #ff33ff, 0 0 60px #bb33ff;
+}
+
+.heart.clicking {
+  transform: scale(1.2);
+}
+
+@keyframes floatHeart {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-12px); }
+  100% { transform: translateY(0px); }
+}
+
+.message{min-height:60px;font-size:16px;color:#dda0ff;margin-top:10px;white-space:pre-wrap;}
+.hint{font-size:13px;opacity:0.7;margin-top:6px;}
+
+.float-heart{
+  position:absolute;
+  font-size:28px;
+  pointer-events:none;
+  z-index:1;
+}
+</style>
+</head>
+<body>
+
+<canvas id="bgCanvas"></canvas>
+
+<div class="card" id="lockScreen">
+  <h2>🔒PRIVATE CARD - Shhhhh🤫</h2>
+  <p>Enter the name of the person who owns my Heart</p>
+  <input id="nameInput" placeholder="Type the name…" />
+  <br>
+  <button onclick="unlock()">Unlock</button>
+  <div class="error" id="error"></div>
+</div>
+
+<div class="card" id="heartScreen" style="display:none;">
+  <div class="heart" id="heart" onclick="nextMessage()">❤️</div>
+  <div class="message" id="message"></div>
+  <div class="hint">(click the heart)</div>
+</div>
+
+<script>
+// 💜 Card logic
+const correctName = "Sudaroli";
+const messages = [
+  "You are the perfect one for me. ONLY FOR ME😏.",
+  "Somehow you always feel like HOME to me🤗.",
+  "I choose you — on the good days and the hard ones✨.",
+  "I'm glad that we went from 1% to 100%🥰. I LOVE YOU💘",
+  "This Heart is yours💯. HAPPY VALENTINE'S DAY❤"
+];
+let index=0, typing=false;
+
+function unlock(){
+  const input = nameInput.value.trim().toLowerCase();
+  if(input === correctName.toLowerCase()){
+    lockScreen.style.display="none";
+    heartScreen.style.display="block";
+  } else { error.textContent="OH NO! My heart says that’s not it. Try another💭"; }
+}
+
+function typeText(text){
+  const el=message;
+  el.textContent="";
+  let i=0; typing=true;
+  const interval=setInterval(()=>{
+    el.textContent+=text[i++];
+    if(i===text.length){clearInterval(interval);typing=false;}
+  },35);
+}
+
+function nextMessage(){
+  if(typing || index>=messages.length) return;
+
+  // brief pop scale
+  heart.classList.remove("clicking");
+  void heart.offsetWidth;
+  heart.classList.add("clicking");
+
+  // temporary glow for every click before last
+  if(index < messages.length - 1) {
+    heart.classList.add("glow");
+    setTimeout(() => heart.classList.remove("glow"), 500); // glow disappears
+  }
+
+  typeText(messages[index]);
+  spawnHearts();
+
+  index++;
+  
+  // last message glow stays permanently
+  if(index === messages.length){
+    heart.classList.add("glow");
+    hint.textContent="locked in 💜";
+  }
+}
+
+// 💖 Flying hearts in background
+function spawnHearts(){
+  for(let i=0;i<12;i++){
+    const h=document.createElement("div");
+    h.className="float-heart";
+    h.textContent="💜";
+    h.style.left = Math.random() * window.innerWidth + "px";
+    h.style.top = Math.random() * window.innerHeight + "px";
+    const angle=Math.random()*2*Math.PI;
+    const distance=50+Math.random()*120;
+    const dx=Math.cos(angle)*distance;
+    const dy=Math.sin(angle)*distance;
+    h.style.transform=`translate(${dx}px, ${dy}px)`;
+    h.style.transition="transform 1s ease-out, opacity 1s";
+    document.body.appendChild(h);
+    setTimeout(()=>{h.style.opacity=0; setTimeout(()=>h.remove(),1000)},50);
+  }
+}
+
+// 🌌 Dreamy particle background
+const canvas=document.getElementById("bgCanvas");
+const ctx=canvas.getContext("2d");
+canvas.width=window.innerWidth;
+canvas.height=window.innerHeight;
+
+class Particle{
+  constructor(){
+    this.x=Math.random()*canvas.width;
+    this.y=Math.random()*canvas.height;
+    this.radius=Math.random()*2+0.5;
+    this.speedY=Math.random()*0.3+0.05;
+    this.speedX=(Math.random()-0.5)*0.1;
+    this.alpha=Math.random();
+    this.color = ['#dda0ff','#bb33ff','#ff99ff','#e0b3ff'][Math.floor(Math.random()*4)];
+    this.twinkleSpeed=Math.random()*0.02+0.01;
+  }
+  update(){
+    this.y -= this.speedY;
+    this.x += this.speedX;
+    this.alpha += this.twinkleSpeed*(Math.random()<0.5?-1:1);
+    if(this.alpha<0) this.alpha=0;
+    if(this.alpha>1) this.alpha=1;
+    if(this.y<0) this.y=canvas.height;
+    if(this.x<0) this.x=canvas.width;
+    if(this.x>canvas.width) this.x=0;
+  }
+  draw(){
+    ctx.beginPath();
+    ctx.arc(this.x,this.y,this.radius,0,Math.PI*2);
+    ctx.fillStyle=`rgba(221,160,255,${this.alpha})`;
+    ctx.fill();
+    ctx.closePath();
+  }
+}
+
+const particles=[];
+for(let i=0;i<200;i++) particles.push(new Particle());
+
+function animate(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  particles.forEach(p=>{p.update();p.draw();});
+  requestAnimationFrame(animate);
+}
+animate();
+window.addEventListener('resize',()=>{canvas.width=window.innerWidth; canvas.height=window.innerHeight;});
+</script>
+</body>
+</html>
+
